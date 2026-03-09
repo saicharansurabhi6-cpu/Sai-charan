@@ -1,0 +1,50 @@
+from flask import Flask, render_template, request
+import openai
+
+app = Flask(__name__)
+
+# Add your API key
+openai.api_key = "YOUR_OPENAI_API_KEY"
+
+def generate_plan(project_type, area, budget, location):
+
+    prompt = f"""
+    Create a construction planning report.
+
+    Project Type: {project_type}
+    Area: {area} square feet
+    Budget: {budget}
+    Location: {location}
+
+    Provide:
+    1. Construction steps
+    2. Material estimation
+    3. Cost distribution
+    4. Timeline schedule
+    """
+    response = openai.ChatCompletion.create(
+        model="gpt-4o-mini",
+        messages=[{"role": "user", "content": prompt}]
+    )
+
+    return response['choices'][0]['message']['content']
+
+
+@app.route("/", methods=["GET", "POST"])
+def index():
+
+    result = ""
+
+   if request.method == "POST":
+        project = request.form["project"]
+        area = request.form["area"]
+        budget = request.form["budget"]
+        location = request.form["location"]
+
+        result = generate_plan(project, area, budget, location)
+
+    return render_template("index.html", result=result)
+
+
+if __name__ == "__main__":
+    app.run(debug=True)
